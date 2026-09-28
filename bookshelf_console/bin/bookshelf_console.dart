@@ -147,42 +147,78 @@ void main() {
   ];
   out('all: $all');
 
-  //задание 5 операторы
+  // Задание 5. Операторы
   out('');
-  out(' Операторы ');
+  out(' Задание 5. Операторы ');
 
-  // Деление
-  out('7 / 2 = ${7 / 2}'); // 3.5 — вещественное
-  out('7 ~/ 2 = ${7 ~/ 2}'); // 3 — целочисленное
-  out('7 % 2 = ${7 % 2}'); // 1 — остаток
+  // 1) Различие /, ~/ и %
+  out('');
+  out('1) Операторы деления:');
+  out('   7 / 2  = ${7 / 2}    // вещественное деление (double)');
+  out('   7 ~/ 2 = ${7 ~/ 2}    // целочисленное деление (int)');
+  out('   7 % 2  = ${7 % 2}    // остаток от деления');
 
-  // Ленивое вычисление && и ||
+  // 2) Ленивое вычисление && и ||
+  out('');
+  out('2) Ленивое вычисление && и ||:');
   bool sideEffect() {
-    out('  (sideEffect вызван)');
+    out('   -> sideEffect() ВЫЗВАН');
     return true;
   }
 
-  out('${false && sideEffect()}'); // правая часть не вычислится
-  out('${true || sideEffect()}'); // правая часть не вычислится
-  // ?., ??, ??=
-  String? maybeNull;
-  out('${maybeNull?.length}'); // null
-  out(maybeNull ?? 'по умолчанию'); // 'по умолчанию'
-  maybeNull ??= 'присвоено'; // присвоит, т.к. null
-  out(maybeNull!);
+  // Возвращаем значения через функции — компилятор не может их предсказать
+  bool getFalse() => false;
+  bool getTrue() => true;
 
-  // final vs const
+  out('   getFalse() && sideEffect():');
+  out('     результат = ${getFalse() && sideEffect()}');
+  out('     (sideEffect не вызвался — правая часть пропущена)');
+  out('');
+  out('   getTrue() || sideEffect():');
+  out('     результат = ${getTrue() || sideEffect()}');
+  out('     (sideEffect не вызвался — правая часть пропущена)');
+
+  // 3) Операторы ?., ??, ??=
+  out('');
+  out('3) Операторы null-safety:');
+
+  String? getNull() => null;
+  String? maybeNull = getNull();
+
+  out('   Переменная maybeNull = null');
+  final int? maybeLength = maybeNull?.length;
+  out('   maybeNull?.length  = $maybeLength      // ?. вернул null, не упал');
+
+  out(
+    '   maybeNull ?? "по умолчанию" = ${maybeNull ?? "по умолчанию"}   // ?? подставил значение',
+  );
+
+  maybeNull ??= 'присвоено';
+  out(
+    '   maybeNull ??= "присвоено" -> $maybeNull  // ??= присвоил, т.к. было null',
+  );
+
+  // 4) final и const
+  out('');
+  out('4) Различие final и const:');
   final List<int> listFinal = <int>[1, 2, 3];
-  listFinal.add(4); // можно менять содержимое
-  // listFinal = <int>[9]; // ошибка
+  listFinal.add(4);
+  out('   final listFinal = [1, 2, 3]; listFinal.add(4);');
+  out('   -> $listFinal   // final: содержимое менять МОЖНО');
+  out('   // listFinal = [9]; -> ОШИБКА (нельзя переприсвоить)');
 
   const List<int> listConst = <int>[1, 2, 3];
-  // listConst.add(4); // ошибка
+  out('   const listConst = [1, 2, 3];');
+  out('   -> $listConst   // const: содержимое менять НЕЛЬЗЯ');
+  out('   // listConst.add(4); -> ОШИБКА (const неизменяем)');
 
-  // Каскадный оператор ..
+  // 5) Каскадный оператор
+  out('');
+  out('5) Каскадный оператор .. на StringBuffer:');
   final StringBuffer buffer = StringBuffer()
     ..write('Book')
     ..write('Shelf')
     ..write('!');
-  out(buffer.toString()); // BookShelf!
+  out('   StringBuffer()..write("Book")..write("Shelf")..write("!")');
+  out('   результат = ${buffer.toString()}');
 }
