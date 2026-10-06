@@ -11,28 +11,72 @@ void outWrite(String s) {
 }
 
 void main() {
-  // 2.2 Привествие и сведения среды
+  //Задание 1. Приветствие и сведения о среде
   out('проект: BookShelf');
   out('Версия Dart: ${Platform.version}');
   out('ОС: ${Platform.operatingSystem}');
   out('');
 
-  // 2.3 Ввод данных о книге
+  // Задание 2. Ввод данных о книге
   outWrite('название: ');
-  final String title = stdin.readLineSync(encoding: utf8) ?? ' ';
+  final String title = stdin.readLineSync(encoding: utf8) ?? '';
+  if (title.trim().isEmpty) {
+    out('Ошибка: название книги не может быть пустым.');
+    return;
+  }
+
   outWrite('автор: ');
   final String author = stdin.readLineSync(encoding: utf8) ?? 'неизвестен';
+
   outWrite('год издания: ');
-  final int year = int.tryParse(stdin.readLineSync(encoding: utf8) ?? '') ?? 0;
+  final int? yearParsed = int.tryParse(
+    stdin.readLineSync(encoding: utf8) ?? '',
+  );
+  if (yearParsed == null) {
+    out('Ошибка: год должен быть целым числом.');
+    return;
+  }
+  final int year = yearParsed;
+
   outWrite('количество страниц: ');
-  final int pages = int.tryParse(stdin.readLineSync(encoding: utf8) ?? '') ?? 0;
+  final int? pagesParsed = int.tryParse(
+    stdin.readLineSync(encoding: utf8) ?? '',
+  );
+  if (pagesParsed == null || pagesParsed <= 0) {
+    out('Ошибка: количество страниц должно быть целым числом больше нуля.');
+    return;
+  }
+  final int pages = pagesParsed;
+
   outWrite('Оценка (0-5): ');
-  final double rating =
-      double.tryParse(stdin.readLineSync(encoding: utf8) ?? '') ?? 0.0;
+  final double? ratingParsed = double.tryParse(
+    stdin.readLineSync(encoding: utf8) ?? '',
+  );
+  if (ratingParsed == null || ratingParsed < 0 || ratingParsed > 5) {
+    out('Ошибка: оценка должна быть числом от 0 до 5.');
+    return;
+  }
+  final double rating = ratingParsed;
 
   outWrite('Прочитана (да/нет): ');
-  final String readInput = stdin.readLineSync(encoding: utf8) ?? 'нет';
-  final bool isRead = readInput.toLowerCase() == 'да';
+  final String readInput = (stdin.readLineSync(encoding: utf8) ?? '')
+      .trim()
+      .toLowerCase();
+  final bool isRead;
+  if (readInput == 'да' ||
+      readInput == 'yes' ||
+      readInput == 'y' ||
+      readInput == '1') {
+    isRead = true;
+  } else if (readInput == 'нет' ||
+      readInput == 'no' ||
+      readInput == 'n' ||
+      readInput == '0') {
+    isRead = false;
+  } else {
+    out('Ошибка: введите «да» или «нет».');
+    return;
+  }
   // Карточка книги
   out('');
   out('=' * 44);
@@ -44,8 +88,8 @@ void main() {
   out(' Прочитана: ${isRead ? "да" : "нет"}');
   out('=' * 44);
 
-  //задание 2.3 вычисляемые характеристики
-  // Категория по объёму (тернарный оператор)
+  // Задание 3. Вычисляемые характеристики
+  // Категории по объёму (тернарный опператор)
   final String category = pages < 150
       ? 'брошюра'
       : pages < 400
@@ -72,8 +116,8 @@ void main() {
   out('Возраст издания: $age лет');
   out('Инициалы автора: $initials');
 
-  //задание 2.4 коллекции
-  //2.4.1 List<String>
+  // Задание 4. Коллекции
+  //4.1 List<String>
   final List<String> shelf = <String>[
     'Война и мир',
     'Преступление и наказание',
@@ -92,7 +136,7 @@ void main() {
   shelf.remove('1984'); // удалить по значению
   out('После изменений: $shelf');
 
-  //2.4.2 Set<String>
+  //4.2 Set<String>
   outWrite('Жанры через запятую: ');
   final String genreInput = stdin.readLineSync(encoding: utf8) ?? '';
   final Set<String> genres = genreInput
@@ -107,7 +151,7 @@ void main() {
   genres.add('фантастика'); // второй раз не добавится
   out('После повторного добавления: $genres');
 
-  //2.4.3 Map<String, int>
+  //4.3 Map<String, int>
   final Map<String, int> pagesByBook = <String, int>{
     'Война и мир': 1225,
     'Преступление и наказание': 671,
@@ -138,7 +182,7 @@ void main() {
   out('Всего страниц: $total');
   out('В среднем: ${average.toStringAsFixed(1)}');
 
-  //2.4.4 Список с раскрытием, if и for
+  //4.4 Список с раскрытием, if и for
   final List<String> all = <String>[
     'Базовый элемент',
     ...shelf, // раскрытие
@@ -197,7 +241,6 @@ void main() {
   out(
     '   maybeNull ??= "присвоено" -> $maybeNull  // ??= присвоил, т.к. было null',
   );
-
   // 4) final и const
   out('');
   out('4) Различие final и const:');
