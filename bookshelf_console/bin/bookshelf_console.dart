@@ -253,7 +253,12 @@ void main() {
   const List<int> listConst = <int>[1, 2, 3];
   out('   const listConst = [1, 2, 3];');
   out('   -> $listConst   // const: содержимое менять НЕЛЬЗЯ');
-  out('   // listConst.add(4); -> ОШИБКА (const неизменяем)');
+  try {
+    listConst.add(4);
+    out('   // Неожиданно: add(4) сработал');
+  } catch (e) {
+    out('   // Попытка listConst.add(4) -> исключение: $e');
+  }
 
   // 5) Каскадный оператор
   out('');
