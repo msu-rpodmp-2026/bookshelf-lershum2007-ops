@@ -26,8 +26,3 @@ Thumbs.db
 **/android/key.properties
 **/android/**/*.keystore
 **/android/**/*.jks
-
-# Файлы для отладочного ввода-вывода
-input.txt
-out.txt
-*.log
