@@ -81,6 +81,8 @@ final List<Book> library = [
 ];
 
 // Задание 3. Функции вывода и поиска
+
+// Вывод с нумерацией и отметкой о прочтении
 void printAll(List<Book> books, {String emptyMessage = 'Ничего не найдено.'}) {
   if (books.isEmpty) {
     out(emptyMessage);
@@ -96,6 +98,7 @@ void printAll(List<Book> books, {String emptyMessage = 'Ничего не най
   }
 }
 
+// Поиск по подстроке в указанном поле, без учёта регистра
 List<Book> searchByField(List<Book> books, String field, String query) {
   final q = query.toLowerCase();
   return books.where((b) {
@@ -105,12 +108,15 @@ List<Book> searchByField(List<Book> books, String field, String query) {
   }).toList();
 }
 
+// Фильтрация по признаку прочтения
 List<Book> filterByRead(List<Book> books, bool isRead) {
   return books.where((b) => b['read'] == isRead).toList();
 }
 
+// Сортировка; направление задаётся именованным параметром.
+// Создаём копию, чтобы не изменять исходный список.
 List<Book> sortBy(List<Book> books, String field, {bool descending = false}) {
-  final copy = [...books]; // Копия — не изменяем исходный список
+  final copy = [...books];
   copy.sort((a, b) {
     final av = a[field];
     final bv = b[field];
@@ -125,40 +131,33 @@ List<Book> sortBy(List<Book> books, String field, {bool descending = false}) {
   return copy;
 }
 
-// Задание 4. Статистика
+// Задание 4. Статистика (без циклов for — только методы Iterable)
 void printStatistics(List<Book> books) {
   if (books.isEmpty) {
     out('Каталог пуст.');
     return;
   }
-
   final total = books.length;
   final readCount = books.where((b) => b['read'] == true).length;
-
   final totalPages = books.fold<int>(0, (sum, b) => sum + (b['pages'] as int));
   final avgPages = totalPages / total;
-
   final oldest = books.reduce(
     (a, b) => (a['year'] as int) < (b['year'] as int) ? a : b,
   );
   final newest = books.reduce(
     (a, b) => (a['year'] as int) > (b['year'] as int) ? a : b,
   );
-
   final thickest = books.reduce(
     (a, b) => (a['pages'] as int) > (b['pages'] as int) ? a : b,
   );
-
   final genres = books.map((b) => b['genre']).toSet();
-
   final byGenre = <String, int>{};
   for (final g in genres) {
     byGenre[g as String] = books.where((b) => b['genre'] == g).length;
   }
-
   final percent = (readCount / total * 100).toStringAsFixed(1);
 
-  out(' Статистика ');
+  out('Статистика:');
   out('Всего книг: $total (прочитано: $readCount)');
   out('Суммарно страниц: $totalPages');
   out('В среднем на книгу: ${avgPages.toStringAsFixed(1)} стр.');
@@ -170,7 +169,9 @@ void printStatistics(List<Book> books) {
   out('Прочитано: $percent%');
 }
 
-// Задание 5. Надёжный ввод числа и добавление/удаление
+// Задание 5. Надёжный ввод числа (do-while) и добавление/удаление
+
+// Ввод числа в цикле do-while с проверкой диапазона
 int askInt(String prompt, {int min = 0, int? max}) {
   int? value;
   do {
@@ -187,6 +188,7 @@ int askInt(String prompt, {int min = 0, int? max}) {
   return value;
 }
 
+// Добавление книги с проверкой всех полей
 void addBook(List<Book> books) {
   outWrite('Название: ');
   final title = stdin.readLineSync(encoding: utf8) ?? '';
@@ -194,20 +196,15 @@ void addBook(List<Book> books) {
     out('Ошибка: название не может быть пустым.');
     return;
   }
-
   outWrite('Автор: ');
   final author = stdin.readLineSync(encoding: utf8) ?? 'неизвестен';
-
   final year = askInt('Год издания', min: 1000, max: 2100);
   final pages = askInt('Количество страниц', min: 1);
-
   outWrite('Жанр: ');
   final genre = stdin.readLineSync(encoding: utf8) ?? 'неизвестен';
-
   outWrite('Прочитана (да/нет): ');
   final readAnswer = (stdin.readLineSync(encoding: utf8) ?? '').toLowerCase();
   final read = readAnswer == 'да';
-
   books.add({
     'title': title,
     'author': author,
@@ -219,6 +216,7 @@ void addBook(List<Book> books) {
   out('Книга добавлена.');
 }
 
+// Удаление книги по номеру с подтверждением
 void removeBook(List<Book> books) {
   if (books.isEmpty) {
     out('Каталог пуст.');
@@ -237,12 +235,16 @@ void removeBook(List<Book> books) {
 }
 
 // Задание 6. Функции высшего порядка
+
+// Предикат — функция, принимающая книгу и возвращающая bool
 typedef BookPredicate = bool Function(Book book);
 
+// Универсальная фильтрация по предикату
 List<Book> filter(List<Book> books, BookPredicate test) {
   return books.where(test).toList();
 }
 
+// Возвращает замыкание-счётчик
 Function makeCounter() {
   int count = 0;
   return () {
@@ -251,10 +253,10 @@ Function makeCounter() {
   };
 }
 
-// Главное меню для 2 задания
+// Задание 2. Главное меню
 void printMenu() {
   out('');
-  out(' Каталог BookShelf');
+  out('Каталог BookShelf');
   out('1 — Показать весь каталог');
   out('2 — Поиск по автору');
   out('3 — Поиск по названию');
@@ -282,31 +284,26 @@ void main() {
       case '1':
         printAll(library);
         break;
-
       case '2':
         outWrite('Автор (подстрока): ');
         final q = stdin.readLineSync(encoding: utf8) ?? '';
         printAll(searchByField(library, 'author', q));
         break;
-
       case '3':
         outWrite('Название (подстрока): ');
         final q = stdin.readLineSync(encoding: utf8) ?? '';
         printAll(searchByField(library, 'title', q));
         break;
-
       case '4':
         outWrite('Жанр: ');
         final g = stdin.readLineSync(encoding: utf8) ?? '';
         printAll(searchByField(library, 'genre', g));
         break;
-
       case '5':
         outWrite('Показать прочитанные (да/нет): ');
         final ans = (stdin.readLineSync(encoding: utf8) ?? '').toLowerCase();
         printAll(filterByRead(library, ans == 'да'));
         break;
-
       case '6':
         out('По какому полю сортировать? title/author/year/pages');
         outWrite('> ');
@@ -315,24 +312,19 @@ void main() {
         final dir = (stdin.readLineSync(encoding: utf8) ?? '').toLowerCase();
         printAll(sortBy(library, field, descending: dir == 'да'));
         break;
-
       case '7':
         printStatistics(library);
         break;
-
       case '8':
         addBook(library);
         break;
-
       case '9':
         removeBook(library);
         break;
-
       case '0':
         running = false;
         out('Работа завершена. Команд выполнено: ${commandCounter()}');
         break;
-
       default:
         out('Неизвестная команда. Повторите ввод.');
     }
