@@ -1,272 +1,332 @@
 import 'dart:io';
 import 'dart:convert';
 
-void out(String s) {
+// Вспомогательные функции вывода в UTF-8
+void out(Object? s) {
   stdout.add(utf8.encode('$s\n'));
 }
 
-// Пишем строку без перевода строки (для приглашений).
 void outWrite(String s) {
   stdout.add(utf8.encode(s));
 }
 
-void main() {
-  //Задание 1. Приветствие и сведения о среде
-  out('проект: BookShelf');
-  out('Версия Dart: ${Platform.version}');
-  out('ОС: ${Platform.operatingSystem}');
-  out('');
+// Задание 1. Структура данных каталога
+typedef Book = Map<String, Object?>;
 
-  // Задание 2. Ввод данных о книге
-  outWrite('название: ');
-  final String title = stdin.readLineSync(encoding: utf8) ?? '';
-  if (title.trim().isEmpty) {
-    out('Ошибка: название книги не может быть пустым.');
+final List<Book> library = [
+  {
+    'title': 'Основы Dart',
+    'author': 'С. А. Чернышев',
+    'year': 2024,
+    'pages': 521,
+    'genre': 'учебник',
+    'read': true,
+  },
+  {
+    'title': 'Flutter на практике',
+    'author': 'Ф. Заметти',
+    'year': 2020,
+    'pages': 328,
+    'genre': 'учебник',
+    'read': false,
+  },
+  {
+    'title': 'Война и мир',
+    'author': 'Л. Н. Толстой',
+    'year': 1869,
+    'pages': 1225,
+    'genre': 'роман',
+    'read': true,
+  },
+  {
+    'title': 'Мастер и Маргарита',
+    'author': 'М. А. Булгаков',
+    'year': 1967,
+    'pages': 480,
+    'genre': 'роман',
+    'read': true,
+  },
+  {
+    'title': 'Преступление и наказание',
+    'author': 'Ф. М. Достоевский',
+    'year': 1866,
+    'pages': 671,
+    'genre': 'роман',
+    'read': false,
+  },
+  {
+    'title': '1984',
+    'author': 'Дж. Оруэлл',
+    'year': 1949,
+    'pages': 320,
+    'genre': 'антиутопия',
+    'read': true,
+  },
+  {
+    'title': 'Гарри Поттер и философский камень',
+    'author': 'Дж. Роулинг',
+    'year': 1997,
+    'pages': 400,
+    'genre': 'фэнтези',
+    'read': false,
+  },
+  {
+    'title': 'Дюна',
+    'author': 'Ф. Герберт',
+    'year': 1965,
+    'pages': 688,
+    'genre': 'фантастика',
+    'read': false,
+  },
+];
+
+// Задание 3. Функции вывода и поиска
+
+// Вывод с нумерацией и отметкой о прочтении
+void printAll(List<Book> books, {String emptyMessage = 'Ничего не найдено.'}) {
+  if (books.isEmpty) {
+    out(emptyMessage);
     return;
   }
-
-  outWrite('автор: ');
-  final String author = stdin.readLineSync(encoding: utf8) ?? 'неизвестен';
-
-  outWrite('год издания: ');
-  final int? yearParsed = int.tryParse(
-    stdin.readLineSync(encoding: utf8) ?? '',
-  );
-  if (yearParsed == null) {
-    out('Ошибка: год должен быть целым числом.');
-    return;
+  for (int i = 0; i < books.length; i++) {
+    final b = books[i];
+    final mark = b['read'] == true ? '[✓]' : '[ ]';
+    out(
+      '${i + 1}. $mark «${b['title']}» — ${b['author']}, ${b['year']}, '
+      '${b['pages']} стр., ${b['genre']}',
+    );
   }
-  final int year = yearParsed;
+}
 
-  outWrite('количество страниц: ');
-  final int? pagesParsed = int.tryParse(
-    stdin.readLineSync(encoding: utf8) ?? '',
-  );
-  if (pagesParsed == null || pagesParsed <= 0) {
-    out('Ошибка: количество страниц должно быть целым числом больше нуля.');
-    return;
-  }
-  final int pages = pagesParsed;
+// Поиск по подстроке в указанном поле, без учёта регистра
+List<Book> searchByField(List<Book> books, String field, String query) {
+  final q = query.toLowerCase();
+  return books.where((b) {
+    final value = b[field];
+    if (value == null) return false;
+    return value.toString().toLowerCase().contains(q);
+  }).toList();
+}
 
-  outWrite('Оценка (0-5): ');
-  final double? ratingParsed = double.tryParse(
-    stdin.readLineSync(encoding: utf8) ?? '',
-  );
-  if (ratingParsed == null || ratingParsed < 0 || ratingParsed > 5) {
-    out('Ошибка: оценка должна быть числом от 0 до 5.');
-    return;
-  }
-  final double rating = ratingParsed;
+// Фильтрация по признаку прочтения
+List<Book> filterByRead(List<Book> books, bool isRead) {
+  return books.where((b) => b['read'] == isRead).toList();
+}
 
-  outWrite('Прочитана (да/нет): ');
-  final String readInput = (stdin.readLineSync(encoding: utf8) ?? '')
-      .trim()
-      .toLowerCase();
-  final bool isRead;
-  if (readInput == 'да' ||
-      readInput == 'yes' ||
-      readInput == 'y' ||
-      readInput == '1') {
-    isRead = true;
-  } else if (readInput == 'нет' ||
-      readInput == 'no' ||
-      readInput == 'n' ||
-      readInput == '0') {
-    isRead = false;
-  } else {
-    out('Ошибка: введите «да» или «нет».');
-    return;
-  }
-  // Карточка книги
-  out('');
-  out('=' * 44);
-  out(' «$title»');
-  out(' Автор: $author');
-  out(' Год: $year');
-  out(' Страниц: $pages');
-  out(' Оценка: $rating');
-  out(' Прочитана: ${isRead ? "да" : "нет"}');
-  out('=' * 44);
-
-  // Задание 3. Вычисляемые характеристики
-  // Категории по объёму (тернарный опператор)
-  final String category = pages < 150
-      ? 'брошюра'
-      : pages < 400
-      ? 'книга'
-      : 'том';
-
-  // Время чтения при 50 стр/час
-  final double hours = pages / 50;
-
-  // Возраст издания
-  final int currentYear = DateTime.now().year;
-  final int age = currentYear - year;
-
-  // Инициалы автора
-  final List<String> authorParts = author.split(' ');
-  final String initials = authorParts
-      .where((String p) => p.isNotEmpty)
-      .map((String p) => '${p[0].toUpperCase()}.')
-      .join(' ');
-
-  out('');
-  out('Категория: $category');
-  out('Время чтения: ${hours.toStringAsFixed(1)} ч');
-  out('Возраст издания: $age лет');
-  out('Инициалы автора: $initials');
-
-  // Задание 4. Коллекции
-  //4.1 List<String>
-  final List<String> shelf = <String>[
-    'Война и мир',
-    'Преступление и наказание',
-    'Мастер и Маргарита',
-    '1984',
-    'Гарри Поттер',
-  ];
-  out('');
-  out('Полка: $shelf');
-  out('Длина: ${shelf.length}');
-  out('Первый: ${shelf.first}');
-  out('Последний: ${shelf.last}');
-
-  shelf.insert(0, 'Анна Каренина'); // в начало
-  shelf.add('Три товарища'); // в конец
-  shelf.remove('1984'); // удалить по значению
-  out('После изменений: $shelf');
-
-  //4.2 Set<String>
-  outWrite('Жанры через запятую: ');
-  final String genreInput = stdin.readLineSync(encoding: utf8) ?? '';
-  final Set<String> genres = genreInput
-      .split(',')
-      .map((String g) => g.trim())
-      .where((String g) => g.isNotEmpty)
-      .toSet();
-
-  out('Жанры: $genres');
-  // Демонстрация отбрасывания дубликатов:
-  genres.add('фантастика');
-  genres.add('фантастика'); // второй раз не добавится
-  out('После повторного добавления: $genres');
-
-  //4.3 Map<String, int>
-  final Map<String, int> pagesByBook = <String, int>{
-    'Война и мир': 1225,
-    'Преступление и наказание': 671,
-    'Мастер и Маргарита': 480,
-    '1984': 320,
-    'Гарри Поттер': 400,
-  };
-
-  pagesByBook.forEach((String t, int p) {
-    out('$t — $p стр.');
-  });
-
-  // Книга с максимумом страниц
-  String maxBook = '';
-  int maxPages = 0;
-  pagesByBook.forEach((String t, int p) {
-    if (p > maxPages) {
-      maxPages = p;
-      maxBook = t;
+// Сортировка; направление задаётся именованным параметром.
+// Создаём копию, чтобы не изменять исходный список.
+List<Book> sortBy(List<Book> books, String field, {bool descending = false}) {
+  final copy = [...books];
+  copy.sort((a, b) {
+    final av = a[field];
+    final bv = b[field];
+    int cmp;
+    if (av is num && bv is num) {
+      cmp = av.compareTo(bv);
+    } else {
+      cmp = av.toString().compareTo(bv.toString());
     }
+    return descending ? -cmp : cmp;
   });
-  out('Самая толстая: $maxBook ($maxPages стр.)');
+  return copy;
+}
 
-  // Сумма и среднее
-  int total = 0;
-  pagesByBook.forEach((String _, int p) => total += p);
-  final double average = total / pagesByBook.length;
-  out('Всего страниц: $total');
-  out('В среднем: ${average.toStringAsFixed(1)}');
-
-  //4.4 Список с раскрытием, if и for
-  final List<String> all = <String>[
-    'Базовый элемент',
-    ...shelf, // раскрытие
-    if (genres.isNotEmpty) 'Есть жанры', // условный элемент
-    for (int i = 0; i < 3; i++) 'Книга #$i', // цикл
-  ];
-  out('all: $all');
-
-  // Задание 5. Операторы
-  out('');
-  out(' Задание 5. Операторы ');
-
-  // 1) Различие /, ~/ и %
-  out('');
-  out('1) Операторы деления:');
-  out('   7 / 2  = ${7 / 2}    // вещественное деление (double)');
-  out('   7 ~/ 2 = ${7 ~/ 2}    // целочисленное деление (int)');
-  out('   7 % 2  = ${7 % 2}    // остаток от деления');
-
-  // 2) Ленивое вычисление && и ||
-  out('');
-  out('2) Ленивое вычисление && и ||:');
-  bool sideEffect() {
-    out('   -> sideEffect() ВЫЗВАН');
-    return true;
+// Задание 4. Статистика (без циклов for — только методы Iterable)
+void printStatistics(List<Book> books) {
+  if (books.isEmpty) {
+    out('Каталог пуст.');
+    return;
   }
-
-  // Возвращаем значения через функции — компилятор не может их предсказать
-  bool getFalse() => false;
-  bool getTrue() => true;
-
-  out('   getFalse() && sideEffect():');
-  out('     результат = ${getFalse() && sideEffect()}');
-  out('     (sideEffect не вызвался — правая часть пропущена)');
-  out('');
-  out('   getTrue() || sideEffect():');
-  out('     результат = ${getTrue() || sideEffect()}');
-  out('     (sideEffect не вызвался — правая часть пропущена)');
-
-  // 3) Операторы ?., ??, ??=
-  out('');
-  out('3) Операторы null-safety:');
-
-  String? getNull() => null;
-  String? maybeNull = getNull();
-
-  out('   Переменная maybeNull = null');
-  final int? maybeLength = maybeNull?.length;
-  out('   maybeNull?.length  = $maybeLength      // ?. вернул null, не упал');
-
-  out(
-    '   maybeNull ?? "по умолчанию" = ${maybeNull ?? "по умолчанию"}   // ?? подставил значение',
+  final total = books.length;
+  final readCount = books.where((b) => b['read'] == true).length;
+  final totalPages = books.fold<int>(0, (sum, b) => sum + (b['pages'] as int));
+  final avgPages = totalPages / total;
+  final oldest = books.reduce(
+    (a, b) => (a['year'] as int) < (b['year'] as int) ? a : b,
   );
-
-  maybeNull ??= 'присвоено';
-  out(
-    '   maybeNull ??= "присвоено" -> $maybeNull  // ??= присвоил, т.к. было null',
+  final newest = books.reduce(
+    (a, b) => (a['year'] as int) > (b['year'] as int) ? a : b,
   );
-  // 4) final и const
-  out('');
-  out('4) Различие final и const:');
-  final List<int> listFinal = <int>[1, 2, 3];
-  listFinal.add(4);
-  out('   final listFinal = [1, 2, 3]; listFinal.add(4);');
-  out('   -> $listFinal   // final: содержимое менять МОЖНО');
-  out('   // listFinal = [9]; -> ОШИБКА (нельзя переприсвоить)');
-
-  const List<int> listConst = <int>[1, 2, 3];
-  out('   const listConst = [1, 2, 3];');
-  out('   -> $listConst   // const: содержимое менять НЕЛЬЗЯ');
-  try {
-    listConst.add(4);
-    out('   // Неожиданно: add(4) сработал');
-  } catch (e) {
-    out('   // Попытка listConst.add(4) -> исключение: $e');
+  final thickest = books.reduce(
+    (a, b) => (a['pages'] as int) > (b['pages'] as int) ? a : b,
+  );
+  final genres = books.map((b) => b['genre']).toSet();
+  final byGenre = <String, int>{};
+  for (final g in genres) {
+    byGenre[g as String] = books.where((b) => b['genre'] == g).length;
   }
+  final percent = (readCount / total * 100).toStringAsFixed(1);
 
-  // 5) Каскадный оператор
+  out('Статистика:');
+  out('Всего книг: $total (прочитано: $readCount)');
+  out('Суммарно страниц: $totalPages');
+  out('В среднем на книгу: ${avgPages.toStringAsFixed(1)} стр.');
+  out('Самая старая: «${oldest['title']}» (${oldest['year']})');
+  out('Самая новая: «${newest['title']}» (${newest['year']})');
+  out('Самая объёмная: «${thickest['title']}» (${thickest['pages']} стр.)');
+  out('Жанры: ${genres.join(', ')}');
+  out('По жанрам: $byGenre');
+  out('Прочитано: $percent%');
+}
+
+// Задание 5. Надёжный ввод числа (do-while) и добавление/удаление
+
+// Ввод числа в цикле do-while с проверкой диапазона
+int askInt(String prompt, {int min = 0, int? max}) {
+  int? value;
+  do {
+    outWrite('$prompt: ');
+    value = int.tryParse(stdin.readLineSync(encoding: utf8) ?? '');
+    if (value == null || value < min || (max != null && value > max)) {
+      out(
+        'Некорректное значение. Ожидается целое число'
+        '${max == null ? ' не меньше $min' : ' от $min до $max'}.',
+      );
+      value = null;
+    }
+  } while (value == null);
+  return value;
+}
+
+// Добавление книги с проверкой всех полей
+void addBook(List<Book> books) {
+  outWrite('Название: ');
+  final title = stdin.readLineSync(encoding: utf8) ?? '';
+  if (title.trim().isEmpty) {
+    out('Ошибка: название не может быть пустым.');
+    return;
+  }
+  outWrite('Автор: ');
+  final author = stdin.readLineSync(encoding: utf8) ?? 'неизвестен';
+  final year = askInt('Год издания', min: 1000, max: 2100);
+  final pages = askInt('Количество страниц', min: 1);
+  outWrite('Жанр: ');
+  final genre = stdin.readLineSync(encoding: utf8) ?? 'неизвестен';
+  outWrite('Прочитана (да/нет): ');
+  final readAnswer = (stdin.readLineSync(encoding: utf8) ?? '').toLowerCase();
+  final read = readAnswer == 'да';
+  books.add({
+    'title': title,
+    'author': author,
+    'year': year,
+    'pages': pages,
+    'genre': genre,
+    'read': read,
+  });
+  out('Книга добавлена.');
+}
+
+// Удаление книги по номеру с подтверждением
+void removeBook(List<Book> books) {
+  if (books.isEmpty) {
+    out('Каталог пуст.');
+    return;
+  }
+  printAll(books);
+  final index = askInt('Номер книги для удаления', min: 1, max: books.length);
+  outWrite('Подтвердить удаление «${books[index - 1]['title']}» (да/нет): ');
+  final confirm = (stdin.readLineSync(encoding: utf8) ?? '').toLowerCase();
+  if (confirm == 'да') {
+    out('Удалена: «${books[index - 1]['title']}»');
+    books.removeAt(index - 1);
+  } else {
+    out('Удаление отменено.');
+  }
+}
+
+// Задание 6. Функции высшего порядка
+
+// Предикат — функция, принимающая книгу и возвращающая bool
+typedef BookPredicate = bool Function(Book book);
+
+// Универсальная фильтрация по предикату
+List<Book> filter(List<Book> books, BookPredicate test) {
+  return books.where(test).toList();
+}
+
+// Возвращает замыкание-счётчик
+Function makeCounter() {
+  int count = 0;
+  return () {
+    count++;
+    return count;
+  };
+}
+
+// Задание 2. Главное меню
+void printMenu() {
   out('');
-  out('5) Каскадный оператор .. на StringBuffer:');
-  final StringBuffer buffer = StringBuffer()
-    ..write('Book')
-    ..write('Shelf')
-    ..write('!');
-  out('   StringBuffer()..write("Book")..write("Shelf")..write("!")');
-  out('   результат = ${buffer.toString()}');
+  out('Каталог BookShelf');
+  out('1 — Показать весь каталог');
+  out('2 — Поиск по автору');
+  out('3 — Поиск по названию');
+  out('4 — Фильтр по жанру');
+  out('5 — Фильтр по признаку «прочитана»');
+  out('6 — Сортировка');
+  out('7 — Статистика');
+  out('8 — Добавить книгу');
+  out('9 — Удалить книгу по номеру');
+  out('0 — Выход');
+}
+
+void main() {
+  final commandCounter = makeCounter();
+  var running = true;
+
+  while (running) {
+    printMenu();
+    outWrite('> ');
+    final command = (stdin.readLineSync(encoding: utf8) ?? '').trim();
+    commandCounter();
+    out('');
+
+    switch (command) {
+      case '1':
+        printAll(library);
+        break;
+      case '2':
+        outWrite('Автор (подстрока): ');
+        final q = stdin.readLineSync(encoding: utf8) ?? '';
+        printAll(searchByField(library, 'author', q));
+        break;
+      case '3':
+        outWrite('Название (подстрока): ');
+        final q = stdin.readLineSync(encoding: utf8) ?? '';
+        printAll(searchByField(library, 'title', q));
+        break;
+      case '4':
+        outWrite('Жанр: ');
+        final g = stdin.readLineSync(encoding: utf8) ?? '';
+        printAll(searchByField(library, 'genre', g));
+        break;
+      case '5':
+        outWrite('Показать прочитанные (да/нет): ');
+        final ans = (stdin.readLineSync(encoding: utf8) ?? '').toLowerCase();
+        printAll(filterByRead(library, ans == 'да'));
+        break;
+      case '6':
+        out('По какому полю сортировать? title/author/year/pages');
+        outWrite('> ');
+        final field = (stdin.readLineSync(encoding: utf8) ?? '').trim();
+        outWrite('По убыванию (да/нет): ');
+        final dir = (stdin.readLineSync(encoding: utf8) ?? '').toLowerCase();
+        printAll(sortBy(library, field, descending: dir == 'да'));
+        break;
+      case '7':
+        printStatistics(library);
+        break;
+      case '8':
+        addBook(library);
+        break;
+      case '9':
+        removeBook(library);
+        break;
+      case '0':
+        running = false;
+        out('Работа завершена. Команд выполнено: ${commandCounter()}');
+        break;
+      default:
+        out('Неизвестная команда. Повторите ввод.');
+    }
+  }
 }
