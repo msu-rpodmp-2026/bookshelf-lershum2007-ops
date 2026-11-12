@@ -10,6 +10,9 @@ class AudioBook extends Book {
     required this.duration,
     required this.narrator,
     super.year,
+    super.pages,
+    super.genres,
+    super.status,
   });
 
   @override
