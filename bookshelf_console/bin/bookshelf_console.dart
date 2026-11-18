@@ -16,15 +16,27 @@ void outWrite(String s) {
 }
 
 void printHeader(String text) {
-  out('\n────────────────────────────────────');
+  out('\n------------------------------------');
   out('  $text');
-  out('────────────────────────────────────');
+  out('------------------------------------');
+}
+
+void printMenu() {
+  out('\n=== Каталог BookShelf (ООП) ===');
+  out('1. Показать весь каталог');
+  out('2. Поиск (название/автор/жанр)');
+  out('3. Показать только прочитанные');
+  out('4. Сортировка по названию');
+  out('5. Статистика по жанрам');
+  out('6. Выдать бумажную книгу');
+  out('7. Проверка == и copyWith (Задание 6)'); // <-- НОВЫЙ ПУНКТ
+  out('0. Выход');
+  outWrite('Выберите действие > ');
 }
 
 void main() {
   final Library<Book> lib = Library<Book>();
 
-  // Заполняем каталог
   lib.add(
     PaperBook(
       title: 'Война и мир',
@@ -36,16 +48,19 @@ void main() {
       status: ReadingStatus.finished,
     ),
   );
+
   lib.add(
     EBook(
       title: '1984',
       author: 'Дж. Оруэлл',
       year: 1949,
+      pages: 320,
       format: 'PDF',
       sizeMb: 5.2,
       genres: {'антиутопия'},
     ),
   );
+
   lib.add(
     AudioBook(
       title: 'Дюна',
@@ -56,6 +71,7 @@ void main() {
       genres: {'фантастика'},
     ),
   );
+
   lib.add(
     Book(
       title: 'Основы Dart',
@@ -68,15 +84,7 @@ void main() {
 
   var running = true;
   while (running) {
-    out('\n=== Каталог BookShelf (ООП) ===');
-    out('1. Показать весь каталог');
-    out('2. Поиск (название/автор/жанр)');
-    out('3. Показать только прочитанные');
-    out('4. Сортировка по названию');
-    out('5. Статистика по жанрам');
-    out('6. Выдать бумажную книгу');
-    out('0. Выход');
-    outWrite('Выберите действие > ');
+    printMenu(); // Вызов функции меню
 
     final command = (stdin.readLineSync(encoding: utf8) ?? '').trim();
 
@@ -148,6 +156,25 @@ void main() {
           }
         }
         if (!issued) out(' Нет доступных бумажных книг.');
+        break;
+
+      // НОВЫЙ БЛОК ДЛЯ ПУНКТА 7
+      case '7':
+        printHeader('Демонстрация Задания 6');
+
+        final book1 = Book(title: 'Азбука', author: 'Тест', year: 2020);
+        final book2 = Book(title: 'Азбука', author: 'Тест', year: 2020);
+
+        out('Созданы две одинаковые книги (Азбука).');
+        out('book1 == book2: ${book1 == book2}');
+        out('hashCode равны: ${book1.hashCode == book2.hashCode}');
+
+        final setTest = {book1, book2};
+        out('Размер Set (должен быть 1): ${setTest.length}');
+
+        out('\nПроверка copyWith:');
+        final copy = book1.copyWith(newYear: 2025);
+        out('Оригинал год: ${book1.year}, Копия год: ${copy.year}');
         break;
 
       case '0':
