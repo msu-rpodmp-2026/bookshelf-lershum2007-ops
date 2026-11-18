@@ -94,8 +94,9 @@ class MovieList extends StatelessWidget {
           trailing: const Icon(Icons.chevron_right),
           onTap: () {
             // SnackBar — короткое сообщение внизу экрана
-            ScaffoldMessenger.of(context)
-                .showSnackBar(SnackBar(content: Text('Выбрано: $title')));
+            ScaffoldMessenger.of(
+              context,
+            ).showSnackBar(SnackBar(content: Text('Выбрано: $title')));
           },
         );
       },
@@ -151,4 +152,5 @@ class _WatchedCounterState extends State<WatchedCounter> {
     );
   }
 }
+
 // @STATEFUL_END@

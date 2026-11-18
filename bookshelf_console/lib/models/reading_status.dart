@@ -10,6 +10,11 @@ enum ReadingStatus {
 
   bool get isDone => this == ReadingStatus.finished;
 
-  static ReadingStatus fromName(String name) =>
-      values.firstWhere((s) => s.name == name, orElse: () => planned);
+  static ReadingStatus fromName(String name) {
+    final String value = name.trim().toLowerCase();
+    return values.firstWhere(
+      (ReadingStatus s) => s.name == value || s.label.toLowerCase() == value,
+      orElse: () => planned,
+    );
+  }
 }

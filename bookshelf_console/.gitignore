@@ -6,3 +6,7 @@
 input.txt
 out.txt
 *.log
+# Данные времени выполнения (ЛР №4)
+data/
+*.tmp
+*.bak
