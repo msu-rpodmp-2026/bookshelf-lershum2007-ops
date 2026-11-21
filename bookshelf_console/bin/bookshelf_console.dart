@@ -326,7 +326,7 @@ Future<void> main(List<String> args) async {
         out('Экспортировано в ${p.absolute(storage.csvPath)}');
         break;
 
-            case '11':
+      case '11':
         printHeader('Импорт из CSV');
         try {
           // Строгий режим: при любой некорректной строке исключение прилетает
@@ -337,7 +337,9 @@ Future<void> main(List<String> args) async {
           await saveLibrary(storage, lib);
           out('Импортировано записей: ${lib.count}');
         } on PathNotFoundException {
-          out('Файл library.csv не найден. Сначала выполните экспорт (пункт 10).');
+          out(
+            'Файл library.csv не найден. Сначала выполните экспорт (пункт 10).',
+          );
           out('Каталог не изменён.');
         } on LibraryFormatException catch (e) {
           out('Импорт отменён: $e');
