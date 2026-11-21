@@ -326,17 +326,24 @@ Future<void> main(List<String> args) async {
         out('Экспортировано в ${p.absolute(storage.csvPath)}');
         break;
 
-      case '11':
+            case '11':
+        printHeader('Импорт из CSV');
         try {
-          lib.replaceAll(await storage.importCsv());
+          // Строгий режим: при любой некорректной строке исключение прилетает
+          // ДО замены каталога, поэтому текущие книги не теряются.
+          final List<Book> imported = await storage.importCsv(strict: true);
+          // Каталог заменяется только после успешного разбора ВСЕГО файла.
+          lib.replaceAll(imported);
           await saveLibrary(storage, lib);
+          out('Импортировано записей: ${lib.count}');
         } on PathNotFoundException {
-          out('Файл library.csv не найден. Сначала сделай экспорт (пункт 10).');
+          out('Файл library.csv не найден. Сначала выполните экспорт (пункт 10).');
+          out('Каталог не изменён.');
         } on LibraryFormatException catch (e) {
-          out(e.toString());
+          out('Импорт отменён: $e');
+          out('Каталог не изменён и не перезаписан.');
         }
         break;
-
       case '12':
         final bool ok = await storage.backup();
         out(
