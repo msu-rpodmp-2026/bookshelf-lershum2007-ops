@@ -75,8 +75,9 @@ class _FormScreenState extends State<FormScreen> {
       return;
     }
     setState(() => _saving = false);
-    ScaffoldMessenger.of(context)
-        .showSnackBar(SnackBar(content: Text('Сохранено: ${_title.text}')));
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text('Сохранено: ${_title.text}')));
   }
 
   @override

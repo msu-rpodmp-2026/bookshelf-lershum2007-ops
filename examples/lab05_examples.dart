@@ -261,4 +261,5 @@ Future<void> demoNetwork() async {
     client.close();
   }
 }
+
 // @NETWORK_END@
