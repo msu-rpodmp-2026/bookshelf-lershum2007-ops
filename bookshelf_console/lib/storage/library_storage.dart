@@ -192,18 +192,52 @@ class LibraryStorage {
     if (f[0].trim().isEmpty) {
       throw LibraryFormatException('пустое название', lineNo);
     }
+
+    // Парсим поля до Book.fromJson, чтобы проверить значения
+    final String title = f[0].trim();
+    final String author = f[1].trim();
+    final int? year = int.tryParse(f[2].trim());
+    final int? pages = int.tryParse(f[3].trim());
+    final Set<String> genres = f[4]
+        .split(',')
+        .map((String g) => g.trim())
+        .where((String g) => g.isNotEmpty)
+        .toSet();
+    final String statusStr = f[5].trim();
+    final double? rating = f[6].trim().isEmpty
+        ? null
+        : double.tryParse(f[6].trim());
+
+    // Проверки значений — если не проходят, бросаем LibraryFormatException
+    // с номером строки, чтобы строгий импорт отменялся
+    if (year == null || year < 1000 || year > 2100) {
+      throw LibraryFormatException(
+        'год должен быть целым числом от 1000 до 2100',
+        lineNo,
+      );
+    }
+    if (pages == null || pages <= 0) {
+      throw LibraryFormatException(
+        'количество страниц должно быть целым числом больше нуля',
+        lineNo,
+      );
+    }
+    if (rating != null && (rating < 0 || rating > 5)) {
+      throw LibraryFormatException(
+        'оценка должна быть числом от 0 до 5',
+        lineNo,
+      );
+    }
+
+    // Теперь безопасно создаём книгу через Book.fromJson
     return Book.fromJson(<String, dynamic>{
-      'title': f[0].trim(),
-      'author': f[1].trim().isEmpty ? null : f[1].trim(),
-      'year': int.tryParse(f[2].trim()),
-      'pages': int.tryParse(f[3].trim()),
-      'genres': f[4]
-          .split(',')
-          .map((String g) => g.trim())
-          .where((String g) => g.isNotEmpty)
-          .toList(),
-      'status': f[5].trim(),
-      'rating': double.tryParse(f[6].trim()),
+      'title': title,
+      'author': author.isEmpty ? null : author,
+      'year': year,
+      'pages': pages,
+      'genres': genres.toList(),
+      'status': statusStr,
+      'rating': rating,
     });
   }
 
