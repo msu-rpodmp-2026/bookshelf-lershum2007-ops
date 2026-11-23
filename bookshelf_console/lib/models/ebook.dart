@@ -14,6 +14,13 @@ class EBook extends Book {
     super.genres,
     super.status,
   });
+  @override
+  Map<String, dynamic> toJson() => <String, dynamic>{
+    ...super.toJson(),
+    'type': 'ebook',
+    'format': format,
+    'sizeMb': sizeMb,
+  };
 
   @override
   String describe() => '${super.describe()} [EBook, $format, $sizeMb МБ]';

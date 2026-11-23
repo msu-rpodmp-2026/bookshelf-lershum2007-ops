@@ -42,6 +42,13 @@ class Library<T extends LibraryItem> {
 
   Iterable<T> where(bool Function(T) test) => _items.where(test);
 
+  /// ЛР №4: полностью заменить содержимое каталога (загрузка JSON / импорт CSV).
+  void replaceAll(Iterable<T> newItems) {
+    _items
+      ..clear()
+      ..addAll(newItems);
+  }
+
   Map<String, int> countByGenre() {
     final Map<String, int> map = {};
     for (final item in _items) {

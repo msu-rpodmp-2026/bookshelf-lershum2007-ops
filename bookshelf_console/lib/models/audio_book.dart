@@ -10,10 +10,17 @@ class AudioBook extends Book {
     required this.duration,
     required this.narrator,
     super.year,
+    super.status,
     super.pages,
     super.genres,
-    super.status,
   });
+  @override
+  Map<String, dynamic> toJson() => <String, dynamic>{
+    ...super.toJson(),
+    'type': 'audio',
+    'durationMinutes': duration.inMinutes,
+    'narrator': narrator,
+  };
 
   @override
   double get readingHours => duration.inMinutes / 60.0;

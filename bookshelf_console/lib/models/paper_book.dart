@@ -12,6 +12,12 @@ class PaperBook extends Book with Borrowable, Loggable {
     super.genres,
     super.status,
   });
+  @override
+  Map<String, dynamic> toJson() => <String, dynamic>{
+    ...super.toJson(),
+    'type': 'paper',
+    'shelfLocation': shelfLocation,
+  };
 
   @override
   String describe() => '${super.describe()} [Бумажная, полка: $shelfLocation]';
