@@ -5,6 +5,7 @@ import 'package:path/path.dart' as p;
 
 import '../models/book.dart';
 import '../models/book_json.dart';
+import '../models/reading_status.dart';
 
 /// Задание 5. Собственное исключение: номер строки CSV и описание проблемы.
 class LibraryFormatException implements Exception {
@@ -82,8 +83,6 @@ class LibraryStorage {
       try {
         books.add(bookFromJson(item));
       } on TypeError {
-        // Данные из файла недоверенные: запись с неверным типом поля пропускаем,
-        // но программа продолжает работать (требование задания 2).
         skipped++;
         stderr.writeln('Запись с некорректным типом поля пропущена');
       } on ArgumentError {
@@ -182,6 +181,9 @@ class LibraryStorage {
     return true;
   }
 
+  /// Разбор строки CSV: все значения проверяются ДО Book.fromJson.
+  /// Любая некорректная строка -> LibraryFormatException с номером строки,
+  /// поэтому строгий импорт отменяется и каталог не теряется.
   Book _bookFromFields(List<String> f, int lineNo) {
     if (f.length != _header.length) {
       throw LibraryFormatException(
@@ -193,50 +195,81 @@ class LibraryStorage {
       throw LibraryFormatException('пустое название', lineNo);
     }
 
-    // Парсим поля до Book.fromJson, чтобы проверить значения
     final String title = f[0].trim();
     final String author = f[1].trim();
-    final int? year = int.tryParse(f[2].trim());
-    final int? pages = int.tryParse(f[3].trim());
-    final Set<String> genres = f[4]
-        .split(',')
-        .map((String g) => g.trim())
-        .where((String g) => g.isNotEmpty)
-        .toSet();
-    final String statusStr = f[5].trim();
-    final double? rating = f[6].trim().isEmpty
-        ? null
-        : double.tryParse(f[6].trim());
 
-    // Проверки значений — если не проходят, бросаем LibraryFormatException
-    // с номером строки, чтобы строгий импорт отменялся
+    // Год: обязательное целое число в разумном диапазоне.
+    final int? year = int.tryParse(f[2].trim());
     if (year == null || year < 1000 || year > 2100) {
       throw LibraryFormatException(
         'год должен быть целым числом от 1000 до 2100',
         lineNo,
       );
     }
-    if (pages == null || pages <= 0) {
+
+    // Страницы: обязательное целое НЕОТРИЦАТЕЛЬНОЕ. Ноль допустим:
+    // у EBook и AudioBook страниц нет, и в экспорте у них pages = 0 —
+    // круговой импорт (экспорт -> импорт) не должен терять такие книги.
+    final int? pages = int.tryParse(f[3].trim());
+    if (pages == null || pages < 0) {
       throw LibraryFormatException(
-        'количество страниц должно быть целым числом больше нуля',
-        lineNo,
-      );
-    }
-    if (rating != null && (rating < 0 || rating > 5)) {
-      throw LibraryFormatException(
-        'оценка должна быть числом от 0 до 5',
+        'количество страниц должно быть целым числом не меньше нуля',
         lineNo,
       );
     }
 
-    // Теперь безопасно создаём книгу через Book.fromJson
+    final Set<String> genres = f[4]
+        .split(',')
+        .map((String g) => g.trim())
+        .where((String g) => g.isNotEmpty)
+        .toSet();
+
+    // Статус: только известное имя или подпись, иначе отмена импорта
+    // (раньше неизвестный статус молча превращался в planned).
+    final String statusRaw = f[5].trim();
+    final String statusNorm = statusRaw.toLowerCase();
+    ReadingStatus? matchedStatus;
+    for (final ReadingStatus s in ReadingStatus.values) {
+      if (s.name == statusNorm || s.label.toLowerCase() == statusNorm) {
+        matchedStatus = s;
+        break;
+      }
+    }
+    if (matchedStatus == null) {
+      throw LibraryFormatException(
+        'неизвестный статус «$statusRaw» '
+        '(ожидалось: planned, reading, finished, abandoned)',
+        lineNo,
+      );
+    }
+
+    // Оценка: пустое поле разрешено (null = «без оценки»).
+    // Заполненное — только конечное число от 0 до 5.
+    // 'abc' даёт tryParse -> null, 'NaN' -> double.nan (такой прошёл бы
+    // сравнения < 0 и > 5), поэтому проверяем и разбор, и isFinite.
+    final String ratingRaw = f[6].trim();
+    final double? rating;
+    if (ratingRaw.isEmpty) {
+      rating = null;
+    } else {
+      final double? parsed = double.tryParse(ratingRaw);
+      if (parsed == null || !parsed.isFinite || parsed < 0 || parsed > 5) {
+        throw LibraryFormatException(
+          'оценка должна быть конечным числом от 0 до 5 '
+          '(пустое поле означает «без оценки»)',
+          lineNo,
+        );
+      }
+      rating = parsed;
+    }
+
     return Book.fromJson(<String, dynamic>{
       'title': title,
       'author': author.isEmpty ? null : author,
       'year': year,
       'pages': pages,
       'genres': genres.toList(),
-      'status': statusStr,
+      'status': matchedStatus.name,
       'rating': rating,
     });
   }
